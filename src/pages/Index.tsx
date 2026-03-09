@@ -9,6 +9,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ScrollReveal from "@/components/ScrollReveal";
 import SectionHeading from "@/components/SectionHeading";
+import Counter from "@/components/Counter";
 
 const services = [
   { icon: TrendingUp, title: "Investment Advisory", desc: "Strategic investment planning across mutual funds, equities, and alternative assets to maximize your returns.", color: "bg-primary/10 text-primary" },
@@ -113,8 +114,8 @@ const Index = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, i) => (
               <ScrollReveal key={stat.label} delay={i * 0.1} className="text-center">
-                <div className="text-3xl sm:text-4xl font-extrabold text-primary mb-1">{stat.value}</div>
-                <div className="text-sm text-muted-foreground font-medium">{stat.label}</div>
+                <Counter value={stat.value} duration={2} />
+                <div className="text-sm text-muted-foreground font-medium mt-2">{stat.label}</div>
               </ScrollReveal>
             ))}
           </div>
