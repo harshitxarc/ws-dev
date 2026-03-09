@@ -15,10 +15,25 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
 
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "smooth"
+    });
+  };
+
+  const handleLinkClick = (path: string) => {
+    setIsOpen(false);
+    if (location.pathname === path) {
+      scrollToTop();
+    }
+  };
+
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-background backdrop-blur-xl border-b border-border">
       <div className="container-narrow section-padding !py-0 flex items-center justify-between h-16 sm:h-20">
-        <Link to="/" className="flex items-center gap-2">
+        <Link to="/" onClick={() => handleLinkClick("/")} className="flex items-center gap-2">
           <img src="/wealth-suraksha-logo.png" alt="Wealth Suraksha" className="h-16 w-auto" />
           <span className="text-lg font-bold text-foreground">
             Wealth<span className="text-primary">Suraksha</span>
@@ -31,6 +46,7 @@ const Navbar = () => {
             <Link
               key={link.path}
               to={link.path}
+              onClick={() => handleLinkClick(link.path)}
               className={`text-sm font-medium transition-colors hover:text-primary ${
                 location.pathname === link.path
                   ? "text-primary"
@@ -40,7 +56,11 @@ const Navbar = () => {
               {link.label}
             </Link>
           ))}
-          <Link to="/contact" className="btn-primary-glow !py-2.5 !px-6 text-sm">
+          <Link 
+            to="/contact" 
+            onClick={() => handleLinkClick("/contact")}
+            className="btn-primary-glow !py-2.5 !px-6 text-sm"
+          >
             Book Consultation
           </Link>
         </div>
@@ -68,7 +88,7 @@ const Navbar = () => {
                 <Link
                   key={link.path}
                   to={link.path}
-                  onClick={() => setIsOpen(false)}
+                  onClick={() => handleLinkClick(link.path)}
                   className={`block py-2 text-sm font-medium ${
                     location.pathname === link.path
                       ? "text-primary"
@@ -80,7 +100,7 @@ const Navbar = () => {
               ))}
               <Link
                 to="/contact"
-                onClick={() => setIsOpen(false)}
+                onClick={() => handleLinkClick("/contact")}
                 className="btn-primary-glow block text-center text-sm !py-2.5"
               >
                 Book Consultation

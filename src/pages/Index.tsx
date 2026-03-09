@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import heroBg from "@/assets/hero-bg.jpg";
 import {
   TrendingUp, Shield, PiggyBank, Home as HomeIcon, FileText, Landmark,
   Users, Award, Clock, CheckCircle2, ArrowRight, Star, ChevronRight,
@@ -49,15 +50,32 @@ const whyChooseUs = [
 ];
 
 const Index = () => {
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "smooth"
+    });
+  };
+
+  const handleConsultationClick = () => {
+    // If already on contact page, scroll to top
+    if (window.location.pathname === '/contact') {
+      scrollToTop();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
 
       {/* Hero Section */}
-      <section className="hero-gradient-bg pt-28 sm:pt-36 pb-16 sm:pb-24 relative overflow-hidden">
-        {/* Floating shapes */}
-        <div className="absolute top-20 right-10 w-72 h-72 rounded-full bg-primary/5 animate-float blur-3xl" />
-        <div className="absolute bottom-10 left-10 w-56 h-56 rounded-full bg-accent/5 animate-float blur-3xl" style={{ animationDelay: "2s" }} />
+      <section className="relative pt-28 sm:pt-36 pb-16 sm:pb-24 overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0 overflow-hidden">
+          <img src={heroBg} alt="" className="w-full h-full object-cover hero-bg-zoom" />
+          <div className="absolute inset-0 bg-gradient-to-r from-foreground/40 via-foreground/25 to-foreground/15" />
+        </div>
 
         <div className="container-narrow section-padding !py-0 relative z-10">
           <div className="max-w-3xl mx-auto text-center">
@@ -66,7 +84,7 @@ const Index = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider mb-6">
+              <span className="inline-block px-4 py-1.5 rounded-full bg-primary/20 text-primary text-xs font-semibold uppercase tracking-wider mb-6 backdrop-blur-sm">
                 Trusted Financial Partner Since 2019
               </span>
             </motion.div>
@@ -75,7 +93,7 @@ const Index = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-foreground leading-[1.1] mb-6"
+              className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-[1.1] mb-6"
             >
               Building Your Wealth.{" "}
               <span className="gradient-text">Securing Your Legacy.</span>
@@ -85,7 +103,7 @@ const Index = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed"
+              className="text-lg sm:text-xl text-white/80 max-w-2xl mx-auto mb-10 leading-relaxed"
             >
               Expert wealth management for individuals, NRIs, SMEs & corporates. 
               Grow, protect, and pass on your wealth with confidence.
@@ -97,10 +115,10 @@ const Index = () => {
               transition={{ duration: 0.6, delay: 0.3 }}
               className="flex flex-col sm:flex-row items-center justify-center gap-4"
             >
-              <Link to="/contact" className="btn-primary-glow text-base flex items-center gap-2">
+              <Link to="/contact" onClick={handleConsultationClick} className="btn-primary-glow text-base flex items-center gap-2">
                 Book Free Consultation <ArrowRight className="w-4 h-4" />
               </Link>
-              <Link to="/services" className="btn-secondary-outline text-base">
+              <Link to="/services" className="border-2 border-white/30 text-white font-semibold rounded-xl px-8 py-3 bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-all text-base">
                 Explore Services
               </Link>
             </motion.div>
@@ -133,7 +151,7 @@ const Index = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {services.map((service, i) => (
               <ScrollReveal key={service.title} delay={i * 0.08}>
-                <Link to="/services" className="card-elevated p-6 sm:p-8 block group h-full">
+                <Link to="/services" className="card-elevated p-6 sm:p-8 block group h-full" onClick={scrollToTop}>
                   <div className={`w-12 h-12 rounded-xl ${service.color} flex items-center justify-center mb-5`}>
                     <service.icon className="w-6 h-6" />
                   </div>
@@ -255,7 +273,7 @@ const Index = () => {
               { title: "Planning Your Retirement: Start Early, Retire Rich", category: "Retirement", date: "Feb 20, 2026" },
             ].map((post, i) => (
               <ScrollReveal key={post.title} delay={i * 0.1}>
-                <Link to="/blog" className="card-elevated overflow-hidden block group">
+                <Link to="/blog" className="card-elevated overflow-hidden block group" onClick={scrollToTop}>
                   <div className="h-48 bg-gradient-to-br from-primary/10 to-accent/5 flex items-center justify-center">
                     <FileText className="w-12 h-12 text-primary/30" />
                   </div>
@@ -291,6 +309,7 @@ const Index = () => {
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                   <Link
                     to="/contact"
+                    onClick={handleConsultationClick}
                     className="bg-background text-foreground font-semibold rounded-xl px-8 py-3 hover:bg-background/90 transition-colors"
                   >
                     Schedule Free Consultation

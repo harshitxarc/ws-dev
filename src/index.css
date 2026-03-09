@@ -124,6 +124,21 @@
     background: var(--hero-gradient);
   }
 
+  /* zooming background animation for hero image */
+  @keyframes hero-zoom {
+    0% {
+      transform: scale(1);
+    }
+    100% {
+      transform: scale(1.15);
+    }
+  }
+
+  .hero-bg-zoom {
+    animation: hero-zoom 30s linear infinite alternate;
+    transform-origin: center;
+  }
+
   .btn-primary-glow {
     @apply bg-primary text-primary-foreground font-semibold rounded-xl px-8 py-3;
     box-shadow: 0 4px 14px hsl(162 63% 41% / 0.3);

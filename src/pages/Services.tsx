@@ -54,6 +54,21 @@ const services = [
 ];
 
 const Services = () => {
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "smooth"
+    });
+  };
+
+  const handleConsultationClick = () => {
+    // If already on contact page, scroll to top
+    if (window.location.pathname === '/contact') {
+      scrollToTop();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -119,7 +134,7 @@ const Services = () => {
                 <p className="text-primary-foreground/80 text-lg max-w-xl mx-auto mb-8">
                   Book a free consultation and our advisors will create a customized financial plan for your goals.
                 </p>
-                <Link to="/contact" className="bg-background text-foreground font-semibold rounded-xl px-8 py-3 inline-block hover:bg-background/90 transition-colors">
+                <Link to="/contact" onClick={handleConsultationClick} className="bg-background text-foreground font-semibold rounded-xl px-8 py-3 inline-block hover:bg-background/90 transition-colors">
                   Book Free Consultation
                 </Link>
               </div>
