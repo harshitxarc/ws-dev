@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { TrendingUp, Mail, Phone, MapPin } from "lucide-react";
+import { Mail, Phone, MapPin } from "lucide-react";
 
 const Footer = () => {
   return (
@@ -8,10 +8,8 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
           {/* Brand */}
           <div>
-            <Link to="/" className="flex items-center gap-2.5 mb-4">
-              <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-primary-foreground" />
-              </div>
+            <Link to="/" className="flex items-center gap-2 mb-4">
+              <img src="/wealth-suraksha-logo.png" alt="Wealth Suraksha" className="h-12 w-auto" />
               <span className="text-lg font-bold">
                 Wealth<span className="text-primary">Suraksha</span>
               </span>
