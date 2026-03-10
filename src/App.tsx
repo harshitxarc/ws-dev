@@ -10,6 +10,7 @@ import Services from "./pages/Services";
 import Blog from "./pages/Blog";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
+import FloatingMarketWidget from "./components/FloatingMarketWidget";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/contact" element={<Contact />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <FloatingMarketWidget />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

@@ -34,8 +34,8 @@ const Navbar = () => {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background backdrop-blur-xl border-b border-border">
       <div className="container-narrow section-padding !py-0 flex items-center justify-between h-16 sm:h-20">
         <Link to="/" onClick={() => handleLinkClick("/")} className="flex items-center gap-2">
-          <img src="/wealth-suraksha-logo.png" alt="Wealth Suraksha" className="h-16 w-auto" />
-          <span className="text-lg font-bold text-foreground">
+          <img src="/wealth-suraksha-logo.png" alt="Wealth Suraksha" className="h-12 sm:h-12 md:h-16 w-auto" />
+          <span className="text-base sm:text-lg font-bold text-foreground">
             Wealth<span className="text-primary">Suraksha</span>
           </span>
         </Link>
