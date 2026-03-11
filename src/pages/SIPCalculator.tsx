@@ -1,10 +1,12 @@
 import { useState, useMemo, ComponentType, SVGProps } from "react";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, AreaChart, Area, XAxis, YAxis, CartesianGrid } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, AreaChart, Area, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CalculatorLayout from "@/components/CalculatorLayout";
 import AnimatedNumber from "@/components/AnimatedNumber";
-import { TrendingUp, Wallet, IndianRupee, Lightbulb } from "lucide-react";
+import { TrendingUp, Wallet, IndianRupee, Lightbulb, ChevronUp } from "lucide-react";
 
 const fmt = (v: number) => "₹" + v.toLocaleString("en-IN", { maximumFractionDigits: 0 });
 
@@ -23,33 +25,51 @@ const SIPCalc = () => {
   const [rate, setRate] = useState(12);
   const [years, setYears] = useState(10);
 
-  const { invested, total, returns, chartData, yearlyData } = useMemo(() => {
-    const n = years * 12;
+  const [stepUpEnabled, setStepUpEnabled] = useState(false);
+  const [stepUpPercent, setStepUpPercent] = useState(10);
+  const { invested, total, returns, pieData, yearlyData } = useMemo(() => {
     const r = rate / 100 / 12;
-    const inv = monthly * n;
-    const tot = r > 0 ? monthly * ((Math.pow(1 + r, n) - 1) / r) * (1 + r) : inv;
-    const ret = Math.round(tot - inv);
-
-    const yearly: { year: string; invested: number; value: number }[] = [];
+    if (!stepUpEnabled) {
+      const n = years * 12;
+      const inv = monthly * n;
+      const tot = r > 0 ? monthly * ((Math.pow(1 + r, n) - 1) / r) * (1 + r) : inv;
+      const yearly: { year: string; invested: number; value: number; returns: number }[] = [];
+      for (let y = 1; y <= years; y++) {
+        const m = y * 12;
+        const val = r > 0 ? monthly * ((Math.pow(1 + r, m) - 1) / r) * (1 + r) : monthly * m;
+        yearly.push({ year: `Yr ${y}`, invested: monthly * m, value: Math.round(val), returns: Math.round(val - monthly * m) });
+      }
+      return {
+        invested: inv,
+        total: Math.round(tot),
+        returns: Math.round(tot - inv),
+        pieData: [{ name: "Invested", value: inv }, { name: "Returns", value: Math.round(tot - inv) }],
+        yearlyData: yearly,
+      };
+    }
+    // Step-up SIP: increase monthly by stepUpPercent% each year
+    let balance = 0;
+    let totalInv = 0;
+    let currentMonthly = monthly;
+    const yearly: { year: string; invested: number; value: number; returns: number }[] = [];
     for (let y = 1; y <= years; y++) {
-      const m = y * 12;
-      const val = r > 0 ? monthly * ((Math.pow(1 + r, m) - 1) / r) * (1 + r) : monthly * m;
-      yearly.push({ year: `Yr ${y}`, invested: monthly * m, value: Math.round(val) });
+      for (let m = 0; m < 12; m++) {
+        balance = (balance + currentMonthly) * (1 + r);
+        totalInv += currentMonthly;
+      }
+      yearly.push({ year: `Yr ${y}`, invested: Math.round(totalInv), value: Math.round(balance), returns: Math.round(balance - totalInv) });
+      currentMonthly = Math.round(currentMonthly * (1 + stepUpPercent / 100));
     }
 
     return {
-      invested: inv,
-      total: Math.round(tot),
-      returns: ret,
-      chartData: [
-        { name: "Invested", value: inv },
-        { name: "Returns", value: ret },
-      ],
+      invested: Math.round(totalInv),
+      total: Math.round(balance),
+      returns: Math.round(balance - totalInv),
+      pieData: [{ name: "Invested", value: Math.round(totalInv) }, { name: "Returns", value: Math.round(balance - totalInv) }],
       yearlyData: yearly,
     };
-  }, [monthly, rate, years]);
+  }, [monthly, rate, years, stepUpEnabled, stepUpPercent]);
 
-  // Smart insight: +₹2000/mo
   const insightExtra = useMemo(() => {
     const r = rate / 100 / 12;
     const n = years * 12;
@@ -81,19 +101,47 @@ const SIPCalc = () => {
                 <Slider value={[value]} onValueChange={v => set(v[0])} min={min} max={max} step={step} />
               </div>
             ))}
+
+            {/* Step-up SIP toggle */}
+            <div className="pt-2 border-t border-border">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <ChevronUp className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium text-foreground">Step-up SIP</span>
+                </div>
+                <Switch checked={stepUpEnabled} onCheckedChange={setStepUpEnabled} />
+              </div>
+              {stepUpEnabled && (
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <label className="text-xs text-muted-foreground">Annual increase</label>
+                    <div className="flex items-center gap-1">
+                      <Input type="number" value={stepUpPercent} onChange={e => setStepUpPercent(Math.max(1, Math.min(50, +e.target.value)))} className="w-16 h-7 text-xs text-right" />
+                      <span className="text-xs text-muted-foreground">%</span>
+                    </div>
+                  </div>
+                  <Slider value={[stepUpPercent]} onValueChange={v => setStepUpPercent(v[0])} min={1} max={50} step={1} />
+                </div>
+              )}
+            </div>
+
           </div>
 
           <div className="flex flex-col items-center justify-center">
             <div className="w-44 h-44 mb-4">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie data={chartData} cx="50%" cy="50%" innerRadius={50} outerRadius={75} dataKey="value" strokeWidth={0}>
+                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={75} dataKey="value" strokeWidth={0}>
                     <Cell fill="hsl(162, 63%, 41%)" />
                     <Cell fill="hsl(210, 20%, 88%)" />
                   </Pie>
                   <Tooltip formatter={(v: number) => fmt(v)} />
                 </PieChart>
               </ResponsiveContainer>
+            </div>
+            <div className="flex gap-4 text-xs">
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-primary inline-block" /> Invested</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-muted inline-block" /> Returns</span>
             </div>
            </div>
         </div>
@@ -106,21 +154,53 @@ const SIPCalc = () => {
         <ResultCard icon={IndianRupee} label="Total Value" value={total} />
       </div>
 
-      {/* Growth Chart */}
+      {/* Tabs: Chart + Table */}
       <div className="card-elevated p-6 sm:p-8 !transform-none">
-        <h3 className="text-sm font-semibold text-foreground mb-4">Investment Growth Over Time</h3>
-        <div className="h-56">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={yearlyData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(210, 20%, 92%)" />
-              <XAxis dataKey="year" tick={{ fontSize: 11 }} stroke="hsl(210, 10%, 46%)" />
-              <YAxis tickFormatter={v => `₹${(v / 100000).toFixed(0)}L`} tick={{ fontSize: 11 }} stroke="hsl(210, 10%, 46%)" />
-              <Tooltip formatter={(v: number) => fmt(v)} />
-              <Area type="monotone" dataKey="invested" stroke="hsl(210, 20%, 78%)" fill="hsl(210, 20%, 92%)" fillOpacity={0.4} strokeWidth={2} name="Invested" />
-              <Area type="monotone" dataKey="value" stroke="hsl(162, 63%, 41%)" fill="hsl(162, 63%, 41%)" fillOpacity={0.12} strokeWidth={2} name="Total Value" />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
+        <Tabs defaultValue="chart">
+          <TabsList className="mb-4">
+            <TabsTrigger value="chart">Growth Chart</TabsTrigger>
+            <TabsTrigger value="table">Year-by-Year</TabsTrigger>
+          </TabsList>
+          <TabsContent value="chart">
+            <div className="h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={yearlyData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(210, 20%, 92%)" />
+                  <XAxis dataKey="year" tick={{ fontSize: 11 }} stroke="hsl(210, 10%, 46%)" />
+                  <YAxis tickFormatter={v => `₹${(v / 100000).toFixed(0)}L`} tick={{ fontSize: 11 }} stroke="hsl(210, 10%, 46%)" />
+                  <Tooltip formatter={(v: number) => fmt(v)} />
+                  <Legend />
+                  <Area type="monotone" dataKey="invested" stroke="hsl(210, 20%, 78%)" fill="hsl(210, 20%, 92%)" fillOpacity={0.4} strokeWidth={2} name="Invested" />
+                  <Area type="monotone" dataKey="value" stroke="hsl(162, 63%, 41%)" fill="hsl(162, 63%, 41%)" fillOpacity={0.12} strokeWidth={2} name="Total Value" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </TabsContent>
+          <TabsContent value="table">
+            <div className="max-h-64 overflow-auto rounded-lg border border-border">
+              <table className="w-full text-sm">
+                <thead className="sticky top-0 bg-muted/80 backdrop-blur">
+                  <tr>
+                    <th className="text-left p-2.5 font-medium text-muted-foreground">Year</th>
+                    <th className="text-right p-2.5 font-medium text-muted-foreground">Invested</th>
+                    <th className="text-right p-2.5 font-medium text-muted-foreground">Returns</th>
+                    <th className="text-right p-2.5 font-medium text-muted-foreground">Value</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {yearlyData.map((row, i) => (
+                    <tr key={i} className="border-t border-border">
+                      <td className="p-2.5 text-foreground">{row.year}</td>
+                      <td className="p-2.5 text-right text-foreground">{fmt(row.invested)}</td>
+                      <td className="p-2.5 text-right text-primary">{fmt(row.returns)}</td>
+                      <td className="p-2.5 text-right font-medium text-foreground">{fmt(row.value)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Smart Insight */}
@@ -128,6 +208,7 @@ const SIPCalc = () => {
         <Lightbulb className="w-5 h-5 text-primary shrink-0 mt-0.5" />
         <p className="text-sm text-muted-foreground">
           <span className="font-semibold text-foreground">Smart Insight:</span> If you increase your SIP by ₹2,000/month, your total value could grow by an additional <span className="font-semibold text-primary">{fmt(insightExtra)}</span> over {years} years.
+          {stepUpEnabled && <> With step-up enabled at {stepUpPercent}% annually, your final monthly SIP will be <span className="font-semibold text-primary">{fmt(Math.round(monthly * Math.pow(1 + stepUpPercent / 100, years - 1)))}</span>.</>}
         </p>
       </div>
     </div>
@@ -138,7 +219,8 @@ const EducationalContent = () => (
   <div className="prose prose-sm max-w-none space-y-6">
     {[
       { title: "What is a SIP Calculator?", body: "A SIP (Systematic Investment Plan) calculator helps you estimate the potential returns on your mutual fund investments made through regular monthly contributions. It uses the power of compounding to project your wealth growth over time." },
-      { title: "How Does a SIP Calculator Work?", body: "The calculator uses the compound interest formula: FV = P × [(1+r)^n − 1] / r × (1+r), where P is the monthly amount, r is the monthly rate, and n is the number of months." },
+      { title: "How Does a SIP Calculator Work?", body: "The calculator uses the compound interest formula: FV = P × [(1+r)^n − 1] / r × (1+r), where P is the monthly amount, r is the monthly rate, and n is the number of months. The step-up variant increases the SIP amount annually by a fixed percentage." },
+      { title: "What is a Step-Up SIP?", body: "A Step-Up SIP increases your investment amount annually by a set percentage, aligning with salary increments. This can dramatically increase your final corpus — even a 10% annual step-up can nearly double the maturity value over 15–20 years." },
     ].map(s => (
       <div key={s.title} className="card-elevated p-6 sm:p-8 space-y-3 !transform-none">
         <h2 className="text-lg font-bold text-foreground">{s.title}</h2>
