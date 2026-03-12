@@ -1,10 +1,11 @@
 import { motion } from "framer-motion";
-import { TrendingUp, TrendingDown, Activity, RefreshCw } from "lucide-react";
+import { TrendingUp, TrendingDown, Activity, RefreshCw, Clock } from "lucide-react";
 import { useMarketData, type MarketAsset } from "@/hooks/useMarketData";
 import { Skeleton } from "@/components/ui/skeleton";
-const formatPrice = (price: number, symbol: string) => {
-  if (["XAU", "XAG"].includes(symbol)) return `$${price.toLocaleString("en-US", { minimumFractionDigits: 2 })}`;
-  if (["IXIC", "SPX", "DJI"].includes(symbol)) return `$${price.toLocaleString("en-US", { minimumFractionDigits: 2 })}`;
+import { isIndianMarketOpen, getISTTime } from "@/lib/formatINR";
+
+const formatPrice = (price: number, region?: "india" | "global") => {
+  if (region === "global") return `$${price.toLocaleString("en-US", { minimumFractionDigits: 2 })}`;
   return `₹${price.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`;
 };
 const AssetRow = ({ asset }: { asset: MarketAsset }) => {
@@ -15,10 +16,12 @@ const AssetRow = ({ asset }: { asset: MarketAsset }) => {
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-foreground">{asset.name}</span>
           <span className="rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-            {asset.category === "commodity" ? "SPOT" : asset.symbol}
+            {asset.category === "commodity" ? "MCX" : asset.region === "india" ? "NSE" : asset.symbol}
           </span>
         </div>
-        <p className="mt-0.5 text-xs text-muted-foreground">{asset.status === "open" ? "Market Open" : "Market Closed"}</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          {asset.status === "open" ? "Market Open" : "Market Closed"}
+        </p>
       </div>
       <div className="text-right">
         <motion.p
@@ -28,7 +31,7 @@ const AssetRow = ({ asset }: { asset: MarketAsset }) => {
           transition={{ duration: 0.25 }}
           className="text-sm font-bold text-foreground tabular-nums"
         >
-          {formatPrice(asset.price, asset.symbol)}
+          {formatPrice(asset.price, asset.region)}
         </motion.p>
         <div className={`mt-0.5 flex items-center justify-end gap-1 text-xs font-medium ${positive ? "text-primary" : "text-destructive"}`}>
           {positive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
@@ -60,6 +63,7 @@ interface MarketPanelProps {
 }
 const MarketPanel = ({ onClose }: MarketPanelProps) => {
   const { data, loading, lastUpdated } = useMarketData();
+  const isOpen = isIndianMarketOpen();
   const indices = data.filter((a) => a.category === "index");
   const commodities = data.filter((a) => a.category === "commodity");
   return (
@@ -80,26 +84,42 @@ const MarketPanel = ({ onClose }: MarketPanelProps) => {
           <Activity className="h-5 w-5 text-primary" />
           <h2 className="text-base font-bold text-foreground">Live Markets</h2>
           <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+            <span className={`absolute inline-flex h-full w-full animate-ping rounded-full ${isOpen ? "bg-primary" : "bg-muted-foreground"} opacity-75`} />
+            <span className={`relative inline-flex h-2 w-2 rounded-full ${isOpen ? "bg-primary" : "bg-muted-foreground"}`} />
           </span>
         </div>
-        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-          <RefreshCw className="h-3 w-3" />
-          {lastUpdated.toLocaleTimeString()}
+        <div className="flex flex-col items-end gap-0.5">
+          <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+            <RefreshCw className="h-3 w-3" />
+            {lastUpdated.toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata" })}
+          </div>
+          <span className={`text-[9px] font-semibold ${isOpen ? "text-primary" : "text-muted-foreground"}`}>
+            {isOpen ? "Market Open" : "Market Closed"}
+          </span>
         </div>
       </div>
       {loading ? (
         <LoadingSkeleton />
       ) : (
         <div className="max-h-[420px] overflow-y-auto overscroll-contain px-2 py-2 max-[640px]:max-h-[60vh]">
-          {/* Indices */}
-          <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Indices</p>
-          {indices.map((a) => (
+          {/* Indian Indices */}
+          <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Indian Indices</p>
+          {indices.filter(a => a.region === "india").map((a) => (
             <AssetRow key={a.id} asset={a} />
           ))}
+
+          {/* Global Indices */}
+          {indices.filter(a => a.region === "global").length > 0 && (
+            <>
+              <p className="px-3 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Global</p>
+              {indices.filter(a => a.region === "global").map((a) => (
+                <AssetRow key={a.id} asset={a} />
+              ))}
+            </>
+          )}
+
           {/* Commodities */}
-          <p className="px-3 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Commodities</p>
+          <p className="px-3 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Commodities (MCX)</p>
           {commodities.map((a) => (
             <AssetRow key={a.id} asset={a} />
           ))}
@@ -107,7 +127,7 @@ const MarketPanel = ({ onClose }: MarketPanelProps) => {
       )}
       {/* Footer */}
       <div className="border-t border-border px-5 py-2.5 text-center text-[10px] text-muted-foreground">
-        Simulated data · Prices for illustration only
+        Simulated data · NSE/BSE hours: 9:15 AM – 3:30 PM IST
       </div>
     </motion.div>
   );

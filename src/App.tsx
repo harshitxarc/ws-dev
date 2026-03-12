@@ -17,6 +17,7 @@ const SIPCalculator = lazy(() => import("./pages/SIPCalculator"));
 const BrokerageCalculator = lazy(() => import("./pages/BrokerageCalculator"));
 const MarginCalculator = lazy(() => import("./pages/MarginCalculator"));
 const SWPCalculator = lazy(() => import("./pages/SWPCalculator"));
+const MarketDashboard = lazy(() => import("./pages/MarketDashboard"));
 
 const queryClient = new QueryClient();
 
@@ -44,6 +45,7 @@ const App = () => (
             <Route path="/brokerage-calculator" element={<BrokerageCalculator />} />
             <Route path="/margin-calculator" element={<MarginCalculator />} />
             <Route path="/swp-calculator" element={<SWPCalculator />} />
+            <Route path="/market-dashboard" element={<MarketDashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>

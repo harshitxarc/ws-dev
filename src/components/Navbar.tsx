@@ -1,12 +1,13 @@
 import { useState, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, TrendingUp, ChevronDown, Calculator, BarChart3, Landmark, Wallet } from "lucide-react";
+import { Menu, X, TrendingUp, ChevronDown, Calculator, BarChart3, Landmark, Wallet, Activity } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const navLinks = [
   { label: "Home", path: "/" },
   { label: "About", path: "/about" },
   { label: "Services", path: "/services" },
+  { label: "Markets", path: "/market-dashboard" },
   { label: "Blog", path: "/blog" },
   { label: "Contact", path: "/contact" },
 ];
